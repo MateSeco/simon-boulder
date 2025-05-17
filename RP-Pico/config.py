@@ -1,7 +1,25 @@
 import os
 
-# En MicroPython, usamos una variable directamente en lugar de getenv
-INTERFACE_MODE = 'cli'  # o 'hardware'
+# Detectar si estamos en MicroPython o Python estándar
+try:
+    import sys
+    is_micropython = sys.implementation.name == 'micropython'
+except:
+    is_micropython = False
+
+def get_interface_mode():
+    if not is_micropython:
+        # En la computadora, siempre CLI
+        return 'cli'
+    else:
+        # En la Pico, permitir elegir entre 'cli' y 'hardware'
+        try:
+            # Por defecto usar hardware en la Pico
+            return os.getenv('SIMON_INTERFACE', 'hardware')
+        except:
+            return 'hardware'
+
+INTERFACE_MODE = get_interface_mode()
 
 # Configuración de pines
 PIN_CONFIG = {
