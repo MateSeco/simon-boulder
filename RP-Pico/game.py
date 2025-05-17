@@ -1,55 +1,83 @@
-import random
-import math
 import sys
-from utime import sleep
-from tones import playsong, sounds
+import math
+
+# Para MicroPython usamos random de una manera diferente
+if hasattr(sys.implementation, 'name') and sys.implementation.name == 'micropython':
+    from urandom import getrandbits
+else:
+    from random import randint
+
+from time import sleep
+from tones import play_color, play_success, play_fail, play_intro
 
 colors = ['RED', 'GREEN', 'BLUE', 'YELLOW']
 
 class Game:
-    def __init__(self):
+    def __init__(self, interface):
+        self.interface = interface
+        self.simon = []
         self.guess = []
-        self.play = []
 
     def __random_color(self):
-        return colors[int(math.floor(random.random() * 4))]
+        if hasattr(sys.implementation, 'name') and sys.implementation.name == 'micropython':
+            return colors[getrandbits(2)]  # 2 bits dan números de 0 a 3
+        else:
+            return colors[randint(0, 3)]
     
-    def add_guess(self):
-        self.guess.append(self.__random_color())
+    def add_color(self):
+        self.simon.append(self.__random_color())
     
     def reset_game(self):
         print("RESET")
+        self.simon.clear()
         self.guess.clear()
-        self.play.clear()
+        play_intro()
 
     def enter_color(self):
-        print('Enter a color: ')
-        color = sys.stdin.readline().rstrip('\n')
-        playsong(sounds[color])
-        self.play.append(color)
+        color = None
+        while color is None:
+            print('Enter a color: ')
+            # TODO: Replace for press button 
+            color = sys.stdin.readline().rstrip('\n')
+            print('LUEGO a color: ')
+        play_color(color)
+        # TODO: Turn on associated light
+        self.guess.append(color)
 
-    def enter_play(self):
+    def enter_guess(self):
         i = 0
-        while i < len(self.guess):
+        while i < len(self.simon):
             self.enter_color()
-            print('GUESS: ', self.guess, ' PLAY: ', self.play)
-            if not self.guess[i] == self.play[i]:
+            print('GUESS: ', self.simon, ' PLAY: ', self.guess)
+            if not self.simon[i] == self.guess[i]:
                 print("YOU LOOSE")
-                playsong(sounds["FAIL"])
+                play_fail()
                 sleep(2)
-                return self.reset_game()
-            print('SONIDO: ', self.play[i])
-            playsong(sounds[self.play[i]])
+                return False  # Indica que perdió pero no termina el juego
+            print('SONIDO: ', self.guess[i])
+            play_color(self.guess[i])
             sleep(1)
             i += 1
         print("SUCCESS!")
-        playsong(sounds["SUCCESS"])
+        play_success()
         sleep(2)
-        self.play.clear()
+        self.guess.clear()
+        return True
 
-    def show_guess(self):
-        for color in self.guess:
+    def show_simon(self):
+        for color in self.simon:
             print('SHOW: ',color)
-            playsong(sounds[color])
+            play_color(color)
+            # TODO: Turn on associated light 
             sleep(1)
+
+    def start(self):
+        while True:  # Bucle infinito principal
+            self.reset_game()  # Reinicia el juego
+            while True:  # Bucle de la ronda actual
+                self.add_color()
+                self.show_simon()
+                if not self.enter_guess():
+                    break  # Sale al bucle principal para reiniciar
+                sleep(1)  # Pausa entre rondas exitosas
             
