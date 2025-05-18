@@ -1,11 +1,9 @@
-from machine import Pin, PWM
+from machine import Pin
 from time import sleep
-import random
 from config import PIN_CONFIG
 from hardware.leds import LEDManager
 from hardware.buttons import ButtonManager
 from hardware.buzzer import BuzzerManager
-import select
 import sys
 
 # Global variables for test state

@@ -1,4 +1,4 @@
-from machine import Pin, Timer
+from machine import Pin
 import time
 from utils.exceptions import ButtonError
 from config import PIN_CONFIG, DEBOUNCE_TIME

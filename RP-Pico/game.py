@@ -1,5 +1,4 @@
 import sys
-import math
 
 # For MicroPython we use random differently
 if hasattr(sys.implementation, 'name') and sys.implementation.name == 'micropython':

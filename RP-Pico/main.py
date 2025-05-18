@@ -1,4 +1,3 @@
-import os
 import sys
 from config import INTERFACE_MODE
 from game import Game
