@@ -1,8 +1,15 @@
 import os
+import sys
 from config import INTERFACE_MODE
 from game import Game
 
+def is_micropython():
+    """Detecta si estamos ejecutando en MicroPython"""
+    return hasattr(sys.implementation, 'name') and sys.implementation.name == 'micropython'
+
 def main():
+    print("Starting Simon Says game...")  # Debug inicial
+    
     # Seleccionar interfaz basada en la configuración
     if INTERFACE_MODE == 'cli':
         from interfaces.cli import CLIInterface

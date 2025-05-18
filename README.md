@@ -13,31 +13,98 @@ Una implementación del clásico juego Simon Says para Raspberry Pi Pico. El jue
 - Modo de ahorro de energía
 - Diseño modular y fácil de modificar
 
-## Lista de Componentes
+## Componentes Necesarios
 
-### Componentes Principales
+### Microcontrolador
 
-- 1x Raspberry Pi Pico
-- 1x Protoboard (mínimo 400 puntos)
-- 1x Cable micro USB
+- **Raspberry Pi Pico**
+  - Microcontrolador: RP2040
+  - Voltaje de operación: 3.3V
+  - Corriente máxima por pin GPIO: 12mA
+  - Voltaje de entrada recomendado (VSYS): 5V vía USB
 
-### LEDs (5mm)
+### LEDs
 
-- 1x LED Rojo (Vf ≈ 2.0V, If = 20mA)
-- 1x LED Verde (Vf ≈ 2.1V, If = 20mA)
-- 1x LED Azul (Vf ≈ 3.0V, If = 20mA)
-- 1x LED Amarillo (Vf ≈ 2.1V, If = 20mA)
-- 4x Resistencias 220Ω (para LEDs)
+- **4x LEDs de propósito general**
+  - Corriente directa (If): 20mA máximo
+  - Colores: Rojo, Verde, Azul, Amarillo
+  - Tipo de montaje: Through-hole
 
-### Botones y Buzzer
+### Resistencias
 
-- 5x Pulsadores momentáneos (táctiles) de 4 pines (6x6x5mm)
-- 1x Buzzer activo (5V, ~23mm diámetro)
+- **4x Resistencias para LEDs**
+  - Valor: 220Ω
+  - Tolerancia: ±5%
+  - Potencia: 1/4W
 
-### Cables
+### Pulsadores
 
-- 20x Cables Dupont macho-macho para conexiones
-- Opcional: Cable para protoboard (22 AWG) para conexiones más limpias
+- **5x Pulsadores táctiles**
+  - Tipo: Momentáneo (normalmente abierto)
+  - Configuración: 4 pines
+  - Dimensiones: 6mm x 6mm x 5mm
+
+### Buzzer
+
+- **1x Módulo Buzzer Activo (KY-012)**
+  - Voltaje de operación: 3.5V - 5.5V (compatible con 3.3V)
+  - Corriente de operación: <25mA
+  - Frecuencia: 2300 ± 500 Hz
+  - Pines: VCC, GND, S (señal)
+
+### Protoboard y Cables
+
+- **1x Protoboard**
+  - Mínimo 400 puntos
+  - Con líneas de alimentación
+- **20x Cables Dupont macho-macho**
+  - Longitud: 10-20cm
+
+### Cable USB
+
+- **1x Cable Micro USB**
+  - Para programación y alimentación
+
+## Montaje en Protoboard
+
+### Conexión de LEDs
+
+1. Conecta los LEDs respetando la polaridad:
+   - Ánodo (pata más larga) → Resistencia 220Ω → Pin GPIO
+   - Cátodo (pata más corta) → GND
+   ```
+   LED Rojo   → GP2
+   LED Verde  → GP3
+   LED Azul   → GP4
+   LED Amarillo → GP5
+   ```
+
+### Conexión de Botones
+
+1. Conecta un pin de cada botón al GPIO correspondiente y el otro a GND:
+   ```
+   Botón Rojo    → GP6
+   Botón Verde   → GP7
+   Botón Azul    → GP8
+   Botón Amarillo → GP9
+   Botón Reset   → GP10
+   ```
+
+### Conexión del Módulo Buzzer (KY-012)
+
+1. Conecta los tres pines del módulo:
+   ```
+   VCC → 3.3V de la Pico
+   GND → GND
+   S (señal) → GP15
+   ```
+
+### Verificación
+
+1. Revisa que no haya cortocircuitos
+2. Verifica la polaridad de todos los LEDs
+3. Confirma que los botones hacen buen contacto
+4. Asegúrate de que todas las conexiones a GND y 3.3V estén correctas
 
 ## Configuración Inicial
 
@@ -60,70 +127,6 @@ sudo usermod -a -G dialout $USER
 sudo chmod 666 /dev/ttyACM0
 
 # Importante: Cierra sesión y vuelve a iniciar para que los cambios surtan efecto
-```
-
-## Montaje en Protoboard
-
-### Preparación
-
-1. Coloca la Raspberry Pi Pico en el centro de la protoboard, dejando espacio suficiente a ambos lados
-2. Asegúrate de que los pines GND y VBUS sean fácilmente accesibles
-
-### Conexión de LEDs
-
-1. Coloca los LEDs en un lado de la protoboard:
-   ```
-   Columna A: LED Rojo
-   Columna C: LED Verde
-   Columna E: LED Azul
-   Columna G: LED Amarillo
-   ```
-2. Conecta las resistencias de 220Ω a los ánodos (pata más larga) de cada LED
-3. Conecta el otro extremo de cada resistencia al pin GPIO correspondiente
-4. Conecta los cátodos (pata más corta) a la línea de GND
-
-### Conexión de Botones
-
-1. Coloca los botones en el otro lado de la protoboard:
-   ```
-   Fila 15-16: Botón Rojo
-   Fila 20-21: Botón Verde
-   Fila 25-26: Botón Azul
-   Fila 30-31: Botón Amarillo
-   Fila 35-36: Botón Reset
-   ```
-2. Conecta un pin de cada botón al GPIO correspondiente
-3. Conecta el otro pin de cada botón a GND
-4. Los otros dos pines del botón no se utilizan
-
-### Conexión del Buzzer
-
-1. Coloca el buzzer en la parte superior de la protoboard
-2. Identifica el pin positivo (generalmente marcado con '+' o pin más largo)
-3. Conecta el pin positivo al GP15
-4. Conecta el pin negativo a GND
-
-### Diagrama de Protoboard
-
-```
-                                   Raspberry Pi Pico
-                                   ┌──────────────┐
-                                   │              │
-         LED Rojo (+ resistor) ────┤GP2           │
-         LED Verde (+ resistor) ───┤GP3           │
-         LED Azul (+ resistor) ────┤GP4           │
-         LED Amarillo (+ resistor) ┤GP5           │
-                                   │              │
-         Botón Rojo ──────────────┤GP6    GND  ──┤
-         Botón Verde ─────────────┤GP7           │
-         Botón Azul ──────────────┤GP8           │
-         Botón Amarillo ──────────┤GP9           │
-         Botón Reset ─────────────┤GP10          │
-                                   │              │
-         Buzzer (+) ──────────────┤GP15          │
-         Buzzer (-) ──────────────┤GND           │
-                                   │              │
-                                   └──────────────┘
 ```
 
 ## Estructura del Proyecto
@@ -168,46 +171,40 @@ ampy --port /dev/ttyACM0 put hardware/leds.py /hardware/leds.py
 ampy --port /dev/ttyACM0 put hardware/buttons.py /hardware/buttons.py
 ```
 
-## Modos de Operación
+## Uso del Juego
 
-1. **Modo Hardware** (en Raspberry Pi Pico):
+### En la Raspberry Pi Pico
 
-   - Utiliza componentes físicos (LEDs, botones, buzzer)
-   - Es el modo por defecto al ejecutar en la Pico
-   - Requiere el hardware conectado según el diagrama
-
-2. **Modo CLI** (en computadora):
-   - Interfaz por línea de comandos para pruebas
-   - Solo funciona cuando ejecutas el código en tu computadora
-   - No requiere hardware
-   - Para ejecutar:
-     ```bash
-     python main.py
-     ```
-
-## Ejecución del Juego
-
-### En tu Computadora (Modo CLI)
-
-```bash
-# El juego siempre correrá en modo CLI en la computadora
-python main.py
-```
-
-### En la Raspberry Pi Pico (Modo Hardware)
+El juego está diseñado principalmente para ejecutarse en la Pico con los componentes físicos conectados.
 
 1. Asegúrate de que todo el hardware está conectado según el diagrama
 2. Conecta la Pico a tu computadora
-3. Carga los archivos usando ampy (ver sección de Instalación)
-4. La Pico ejecutará el programa automáticamente después de cargar los archivos
+3. Carga los archivos:
+   ```bash
+   cd RP-Pico
+   ampy --port /dev/ttyACM0 put main.py
+   # ... (resto de los comandos de carga)
+   ```
+4. El juego iniciará automáticamente al encender la Pico
 
-### Monitorear la Salida Serial
+Para ver los mensajes de debug:
 
 ```bash
 screen /dev/ttyACM0 115200
 ```
 
-Para salir de screen: presiona Ctrl+A seguido de K y confirma con 'y'
+(Para salir de screen: Ctrl+A, luego K, confirmar con 'y')
+
+### En tu Computadora (Desarrollo/Testing)
+
+Para probar el juego sin hardware:
+
+```bash
+cd RP-Pico
+python3 main.py
+```
+
+El juego correrá automáticamente en modo CLI, permitiendo probar la lógica del juego usando el teclado.
 
 ## Solución de Problemas
 
@@ -233,20 +230,3 @@ Si ampy no responde o da timeout:
 1. Desconecta y vuelve a conectar la Pico
 2. Si persiste, recarga MicroPython
 3. Verifica que no hay otras conexiones seriales activas
-
-## Contribuir
-
-[Instrucciones para contribuir al proyecto]
-
-## Licencia
-
-[Tu licencia aquí]
-
----
-
-**Nota**: Para agregar fotos del montaje, se recomienda:
-
-1. Tomar fotos claras del montaje final
-2. Incluir fotos del paso a paso del montaje
-3. Agregar fotos de puntos críticos o conexiones importantes
-4. Usar un fondo claro y buena iluminación

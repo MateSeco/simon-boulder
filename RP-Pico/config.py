@@ -27,7 +27,8 @@ PIN_CONFIG = {
     'GREEN': {'led': 3, 'button': 7},
     'BLUE': {'led': 4, 'button': 8},
     'YELLOW': {'led': 5, 'button': 9},
-    'RESET': {'button': 10}
+    'RESET': {'button': 10},
+    'BUZZER': 15
 }
 
 # Configuración del juego

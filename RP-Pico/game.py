@@ -17,6 +17,7 @@ class Game:
         self.interface = interface
         self.simon = []
         self.guess = []
+        self.running = False
 
     def __random_color(self):
         if hasattr(sys.implementation, 'name') and sys.implementation.name == 'micropython':
@@ -31,53 +32,97 @@ class Game:
         print("RESET")
         self.simon.clear()
         self.guess.clear()
-        play_intro()
+        try:
+            play_intro()
+        except Exception as e:
+            print(f"Error en melodía de intro: {e}")
 
     def enter_color(self):
-        color = None
-        while color is None:
-            print('Enter a color: ')
-            # TODO: Replace for press button 
-            color = sys.stdin.readline().rstrip('\n')
-            print('LUEGO a color: ')
-        play_color(color)
-        # TODO: Turn on associated light
-        self.guess.append(color)
+        try:
+            color = self.interface.read_input()
+            if color == 'RESET':
+                return None
+            play_color(color)
+            self.guess.append(color)
+            return color
+        except Exception as e:
+            print(f"Error al procesar entrada: {e}")
+            return None
 
     def enter_guess(self):
         i = 0
-        while i < len(self.simon):
-            self.enter_color()
+        while i < len(self.simon) and self.running:
+            color = self.enter_color()
+            if color is None:  # Si se presionó RESET o hubo error
+                return None
+            
             print('GUESS: ', self.simon, ' PLAY: ', self.guess)
             if not self.simon[i] == self.guess[i]:
                 print("YOU LOOSE")
-                play_fail()
-                sleep(2)
-                return False  # Indica que perdió pero no termina el juego
+                try:
+                    play_fail()
+                except Exception as e:
+                    print(f"Error en melodía de fallo: {e}")
+                sleep(1)
+                return False
+            
             print('SONIDO: ', self.guess[i])
-            play_color(self.guess[i])
-            sleep(1)
+            try:
+                play_color(self.guess[i])
+            except Exception as e:
+                print(f"Error al reproducir sonido: {e}")
+            sleep(0.5)
             i += 1
+        
+        if not self.running:
+            return None
+            
         print("SUCCESS!")
-        play_success()
-        sleep(2)
+        try:
+            play_success()
+        except Exception as e:
+            print(f"Error en melodía de éxito: {e}")
+        sleep(1)
         self.guess.clear()
         return True
 
     def show_simon(self):
         for color in self.simon:
-            print('SHOW: ',color)
-            play_color(color)
-            # TODO: Turn on associated light 
-            sleep(1)
+            if not self.running:
+                return
+            print(f'Mostrando: {color}')
+            # Intentar reproducir el sonido
+            try:
+                play_color(color)
+            except Exception as e:
+                print(f"Error al reproducir sonido: {e}")
+            
+            # Intentar mostrar el LED
+            try:
+                self.interface.display_sequence(color)
+            except Exception as e:
+                print(f"Error al mostrar LED: {e}")
+            
+            sleep(0.5)
 
     def start(self):
-        while True:  # Bucle infinito principal
-            self.reset_game()  # Reinicia el juego
-            while True:  # Bucle de la ronda actual
-                self.add_color()
-                self.show_simon()
-                if not self.enter_guess():
-                    break  # Sale al bucle principal para reiniciar
-                sleep(1)  # Pausa entre rondas exitosas
-            
+        self.running = True
+        try:
+            while self.running:  # Bucle principal
+                self.reset_game()
+                while self.running:  # Bucle de ronda
+                    self.add_color()
+                    self.show_simon()
+                    result = self.enter_guess()
+                    if result is None:  # Si se presionó RESET o hubo error
+                        break
+                    if not result:  # Si perdió
+                        break
+                    sleep(0.5)  # Pausa entre rondas exitosas
+        except Exception as e:
+            print(f"Error en el juego: {e}")
+        finally:
+            self.running = False
+            print("Juego terminado")
+
+    
