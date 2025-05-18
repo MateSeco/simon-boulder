@@ -15,9 +15,11 @@ class BuzzerManager:
         self.buzzer = None
         if HARDWARE_MODE:
             try:
-                self.buzzer_pin = Pin(PIN_CONFIG['BUZZER'])
+                # El pin del buzzer está directamente en PIN_CONFIG['BUZZER']
+                buzzer_pin = PIN_CONFIG['BUZZER']
+                self.buzzer_pin = Pin(buzzer_pin)
                 self.buzzer = PWM(self.buzzer_pin)
-                print(f"Buzzer configurado en pin {PIN_CONFIG['BUZZER']}")
+                print(f"Buzzer configurado en pin {buzzer_pin}")
             except Exception as e:
                 print(f"Error al configurar buzzer: {e}")
                 self.buzzer = None
