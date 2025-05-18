@@ -8,16 +8,8 @@ except:
     is_micropython = False
 
 def get_interface_mode():
-    if not is_micropython:
-        # On computer, always use CLI
-        return 'cli'
-    else:
-        # On Pico, allow choosing between 'cli' and 'hardware'
-        try:
-            # Default to hardware mode on Pico
-            return os.getenv('SIMON_INTERFACE', 'hardware')
-        except:
-            return 'hardware'
+    # Simple platform check - CLI on computer, hardware on Pico
+    return 'hardware' if is_micropython else 'cli'
 
 INTERFACE_MODE = get_interface_mode()
 
