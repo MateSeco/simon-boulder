@@ -1,163 +1,163 @@
-# Simon Says para Raspberry Pi Pico
+# Simon Says for Raspberry Pi Pico
 
-Una implementación del clásico juego Simon Says para Raspberry Pi Pico. El juego desafía a los jugadores a repetir secuencias de colores cada vez más largas, combinando LEDs, botones y efectos de sonido para una experiencia interactiva completa.
+An implementation of the classic Simon Says game for Raspberry Pi Pico. The game challenges players to repeat increasingly longer color sequences, combining LEDs, buttons, and sound effects for a complete interactive experience.
 
-## Características Principales
+## Main Features
 
-- Secuencias de colores aleatorias y progresivas
-- Interfaz hardware con LEDs, botones y feedback sonoro
-- Modo CLI en computadora para desarrollo y pruebas
-- Sonidos únicos para cada color
-- Melodías especiales para eventos del juego
-- Debouncing para los botones
-- Modo de ahorro de energía
-- Diseño modular y fácil de modificar
+- Random and progressive color sequences
+- Hardware interface with LEDs, buttons, and sound feedback
+- CLI mode on computer for development and testing
+- Unique sounds for each color
+- Special melodies for game events
+- Button debouncing
+- Power-saving mode
+- Modular and easy-to-modify design
 
-## Componentes Necesarios
+## Required Components
 
-### Microcontrolador
+### Microcontroller
 
 - **Raspberry Pi Pico**
-  - Microcontrolador: RP2040
-  - Voltaje de operación: 3.3V
-  - Corriente máxima por pin GPIO: 12mA
-  - Voltaje de entrada recomendado (VSYS): 5V vía USB
+  - Microcontroller: RP2040
+  - Operating voltage: 3.3V
+  - Maximum current per GPIO pin: 12mA
+  - Recommended input voltage (VSYS): 5V via USB
 
 ### LEDs
 
-- **4x LEDs de propósito general**
-  - Corriente directa (If): 20mA máximo
-  - Colores: Rojo, Verde, Azul, Amarillo
-  - Tipo de montaje: Through-hole
+- **4x General purpose LEDs**
+  - Forward current (If): 20mA maximum
+  - Colors: Red, Green, Blue, Yellow
+  - Mounting type: Through-hole
 
-### Resistencias
+### Resistors
 
-- **4x Resistencias para LEDs**
-  - Valor: 220Ω
-  - Tolerancia: ±5%
-  - Potencia: 1/4W
+- **4x LED Resistors**
+  - Value: 220Ω
+  - Tolerance: ±5%
+  - Power: 1/4W
 
-### Pulsadores
+### Buttons
 
-- **5x Pulsadores táctiles**
-  - Tipo: Momentáneo (normalmente abierto)
-  - Configuración: 4 pines
-  - Dimensiones: 6mm x 6mm x 5mm
+- **5x Tactile Push Buttons**
+  - Type: Momentary (normally open)
+  - Configuration: 4 pins
+  - Dimensions: 6mm x 6mm x 5mm
 
 ### Buzzer
 
-- **1x Módulo Buzzer Activo (KY-012)**
-  - Voltaje de operación: 3.5V - 5.5V (compatible con 3.3V)
-  - Corriente de operación: <25mA
-  - Frecuencia: 2300 ± 500 Hz
-  - Pines: VCC, GND, S (señal)
+- **1x Active Buzzer Module (KY-012)**
+  - Operating voltage: 3.5V - 5.5V (3.3V compatible)
+  - Operating current: <25mA
+  - Frequency: 2300 ± 500 Hz
+  - Pins: VCC, GND, S (signal)
 
-### Protoboard y Cables
+### Breadboard and Cables
 
-- **1x Protoboard**
-  - Mínimo 400 puntos
-  - Con líneas de alimentación
-- **20x Cables Dupont macho-macho**
-  - Longitud: 10-20cm
+- **1x Breadboard**
+  - Minimum 400 points
+  - With power rails
+- **20x Male-to-male Dupont cables**
+  - Length: 10-20cm
 
-### Cable USB
+### USB Cable
 
-- **1x Cable Micro USB**
-  - Para programación y alimentación
+- **1x Micro USB Cable**
+  - For programming and power
 
-## Montaje en Protoboard
+## Breadboard Assembly
 
-### Conexión de LEDs
+### LED Connections
 
-1. Conecta los LEDs respetando la polaridad:
-   - Ánodo (pata más larga) → Resistencia 220Ω → Pin GPIO
-   - Cátodo (pata más corta) → GND
+1. Connect the LEDs observing polarity:
+   - Anode (longer leg) → 220Ω Resistor → GPIO Pin
+   - Cathode (shorter leg) → GND
    ```
-   LED Rojo   → GP2
-   LED Verde  → GP3
-   LED Azul   → GP4
-   LED Amarillo → GP5
-   ```
-
-### Conexión de Botones
-
-1. Conecta un pin de cada botón al GPIO correspondiente y el otro a GND:
-   ```
-   Botón Rojo    → GP6
-   Botón Verde   → GP7
-   Botón Azul    → GP8
-   Botón Amarillo → GP9
-   Botón Reset   → GP10
+   Red LED    → GP2
+   Green LED  → GP3
+   Blue LED   → GP4
+   Yellow LED → GP5
    ```
 
-### Conexión del Módulo Buzzer (KY-012)
+### Button Connections
 
-1. Conecta los tres pines del módulo:
+1. Connect one pin of each button to the corresponding GPIO and the other to GND:
    ```
-   VCC → 3.3V de la Pico
+   Red Button    → GP6
+   Green Button  → GP7
+   Blue Button   → GP8
+   Yellow Button → GP9
+   Reset Button  → GP10
+   ```
+
+### Buzzer Module Connection (KY-012)
+
+1. Connect the three module pins:
+   ```
+   VCC → 3.3V from Pico
    GND → GND
-   S (señal) → GP15
+   S (signal) → GP15
    ```
 
-### Verificación
+### Verification
 
-1. Revisa que no haya cortocircuitos
-2. Verifica la polaridad de todos los LEDs
-3. Confirma que los botones hacen buen contacto
-4. Asegúrate de que todas las conexiones a GND y 3.3V estén correctas
+1. Check for short circuits
+2. Verify polarity of all LEDs
+3. Confirm buttons make good contact
+4. Ensure all GND and 3.3V connections are correct
 
-## Configuración Inicial
+## Initial Setup
 
-### Instalar MicroPython en la Pico
+### Install MicroPython on the Pico
 
-1. Mantén presionado el botón BOOTSEL en la Pico
-2. Conecta la Pico a tu computadora mientras mantienes BOOTSEL
-3. Suelta BOOTSEL - la Pico aparecerá como una unidad USB
-4. Descarga el firmware de MicroPython desde [la página oficial](https://micropython.org/download/rp2-pico/)
-5. Copia el archivo .uf2 a la unidad RPI-RP2
-6. La Pico se reiniciará automáticamente
+1. Hold down the BOOTSEL button on the Pico
+2. Connect the Pico to your computer while holding BOOTSEL
+3. Release BOOTSEL - the Pico will appear as a USB drive
+4. Download the MicroPython firmware from [the official page](https://micropython.org/download/rp2-pico/)
+5. Copy the .uf2 file to the RPI-RP2 drive
+6. The Pico will restart automatically
 
-### Configurar Permisos (Linux)
+### Configure Permissions (Linux)
 
 ```bash
-# Agregar tu usuario al grupo dialout
+# Add your user to the dialout group
 sudo usermod -a -G dialout $USER
 
-# Dar permisos al puerto serial
+# Give permissions to the serial port
 sudo chmod 666 /dev/ttyACM0
 
-# Importante: Cierra sesión y vuelve a iniciar para que los cambios surtan efecto
+# Important: Log out and back in for changes to take effect
 ```
 
-## Estructura del Proyecto
+## Project Structure
 
-- `main.py`: Punto de entrada del programa
-- `game.py`: Lógica principal del juego
-- `config.py`: Configuración del juego y hardware
-- `tones.py`: Manejo de sonidos y melodías
-- `interfaces/`: Implementaciones de las interfaces (CLI y hardware)
-- `hardware/`: Controladores para LEDs y botones
-- `utils/`: Utilidades y manejo de excepciones
+- `main.py`: Program entry point
+- `game.py`: Main game logic
+- `config.py`: Game and hardware configuration
+- `tones.py`: Sound and melody handling
+- `interfaces/`: Interface implementations (CLI and hardware)
+- `hardware/`: LED and button controllers
+- `utils/`: Utilities and exception handling
 
-## Instalación del Software
+## Software Installation
 
-1. **Clonar el repositorio**:
+1. **Clone the repository**:
 
 ```bash
-git clone https://github.com/tu-usuario/simon-boulder.git
+git clone https://github.com/your-username/simon-boulder.git
 cd simon-boulder/RP-Pico
 ```
 
-2. **Cargar archivos a la Pico**:
+2. **Upload files to the Pico**:
 
 ```bash
-# Asegúrate de que la Pico está conectada y MicroPython está funcionando
+# Make sure the Pico is connected and MicroPython is running
 ampy --port /dev/ttyACM0 put main.py
 ampy --port /dev/ttyACM0 put config.py
 ampy --port /dev/ttyACM0 put game.py
 ampy --port /dev/ttyACM0 put tones.py
 
-# Crear y cargar directorios
+# Create and upload directories
 ampy --port /dev/ttyACM0 mkdir interfaces
 ampy --port /dev/ttyACM0 put interfaces/__init__.py /interfaces/__init__.py
 ampy --port /dev/ttyACM0 put interfaces/hardware.py /interfaces/hardware.py
@@ -171,62 +171,62 @@ ampy --port /dev/ttyACM0 put hardware/leds.py /hardware/leds.py
 ampy --port /dev/ttyACM0 put hardware/buttons.py /hardware/buttons.py
 ```
 
-## Uso del Juego
+## Game Usage
 
-### En la Raspberry Pi Pico
+### On the Raspberry Pi Pico
 
-El juego está diseñado principalmente para ejecutarse en la Pico con los componentes físicos conectados.
+The game is primarily designed to run on the Pico with physical components connected.
 
-1. Asegúrate de que todo el hardware está conectado según el diagrama
-2. Conecta la Pico a tu computadora
-3. Carga los archivos:
+1. Ensure all hardware is connected according to the diagram
+2. Connect the Pico to your computer
+3. Upload the files:
    ```bash
    cd RP-Pico
    ampy --port /dev/ttyACM0 put main.py
-   # ... (resto de los comandos de carga)
+   # ... (rest of the upload commands)
    ```
-4. El juego iniciará automáticamente al encender la Pico
+4. The game will start automatically when the Pico powers on
 
-Para ver los mensajes de debug:
+To view debug messages:
 
 ```bash
 screen /dev/ttyACM0 115200
 ```
 
-(Para salir de screen: Ctrl+A, luego K, confirmar con 'y')
+(To exit screen: Ctrl+A, then K, confirm with 'y')
 
-### En tu Computadora (Desarrollo/Testing)
+### On Your Computer (Development/Testing)
 
-Para probar el juego sin hardware:
+To test the game without hardware:
 
 ```bash
 cd RP-Pico
 python3 main.py
 ```
 
-El juego correrá automáticamente en modo CLI, permitiendo probar la lógica del juego usando el teclado.
+The game will automatically run in CLI mode, allowing you to test game logic using the keyboard.
 
-## Solución de Problemas
+## Troubleshooting
 
-### La Pico no es detectada
+### Pico Not Detected
 
-Si la Pico aparece como unidad USB en lugar de puerto serial:
+If the Pico appears as a USB drive instead of a serial port:
 
-1. Probablemente está en modo BOOTSEL
-2. Necesitas recargar MicroPython siguiendo los pasos de "Configuración Inicial"
+1. It's probably in BOOTSEL mode
+2. You need to reload MicroPython following the "Initial Setup" steps
 
-### Error de Permisos
+### Permission Errors
 
-Si recibes errores de permisos:
+If you receive permission errors:
 
 ```bash
 sudo chmod 666 /dev/ttyACM0
 ```
 
-### Problemas con ampy
+### Issues with ampy
 
-Si ampy no responde o da timeout:
+If ampy doesn't respond or times out:
 
-1. Desconecta y vuelve a conectar la Pico
-2. Si persiste, recarga MicroPython
-3. Verifica que no hay otras conexiones seriales activas
+1. Disconnect and reconnect the Pico
+2. If it persists, reload MicroPython
+3. Verify there are no other active serial connections

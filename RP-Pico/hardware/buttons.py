@@ -9,25 +9,25 @@ class ButtonManager:
         self.callbacks = {}
         self.last_press = {}
         self.setup_buttons()
-        self._log_available_buttons()  # Agregar logging de botones disponibles
+        self._log_available_buttons()
 
     def _log_available_buttons(self):
-        print("Botones disponibles:", list(self.buttons.keys()))
+        print("Available buttons:", list(self.buttons.keys()))
 
     def setup_buttons(self):
         try:
             for color, config in PIN_CONFIG.items():
-                # Verificar si config es un diccionario y tiene una entrada para 'button'
+                # Check if config is a dictionary and has a 'button' entry
                 if isinstance(config, dict) and 'button' in config:
                     try:
                         self.buttons[color] = Pin(config['button'], Pin.IN, Pin.PULL_UP)
                         self.last_press[color] = 0
-                        # Configurar interrupciones solo para botones existentes
+                        # Configure interrupts only for existing buttons
                         self.buttons[color].irq(trigger=Pin.IRQ_FALLING, 
                                               handler=lambda p, c=color: self._button_callback(c))
-                        print(f"Botón {color} configurado en pin {config['button']}")
+                        print(f"{color} button configured on pin {config['button']}")
                     except Exception as e:
-                        print(f"No se pudo configurar botón {color}: {e}")
+                        print(f"Could not configure {color} button: {e}")
         except Exception as e:
             raise ButtonError(f"Error setting up buttons: {str(e)}")
 
@@ -35,8 +35,8 @@ class ButtonManager:
         try:
             current_time = time.ticks_ms()
             last_time = self.last_press.get(color, 0)
-            if time.ticks_diff(current_time, last_time) > (DEBOUNCE_TIME * 1000):  # Convertir a ms
-                print(f"Button press detected: {color}")  # Debug
+            if time.ticks_diff(current_time, last_time) > (DEBOUNCE_TIME * 1000):
+                print(f"Button press detected: {color}")
                 self.last_press[color] = current_time
                 if color in self.callbacks:
                     self.callbacks[color]()

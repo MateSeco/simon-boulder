@@ -1,6 +1,6 @@
 import os
 
-# Detectar si estamos en MicroPython o Python estándar
+# Detect if we're running on MicroPython or standard Python
 try:
     import sys
     is_micropython = sys.implementation.name == 'micropython'
@@ -9,19 +9,19 @@ except:
 
 def get_interface_mode():
     if not is_micropython:
-        # En la computadora, siempre CLI
+        # On computer, always use CLI
         return 'cli'
     else:
-        # En la Pico, permitir elegir entre 'cli' y 'hardware'
+        # On Pico, allow choosing between 'cli' and 'hardware'
         try:
-            # Por defecto usar hardware en la Pico
+            # Default to hardware mode on Pico
             return os.getenv('SIMON_INTERFACE', 'hardware')
         except:
             return 'hardware'
 
 INTERFACE_MODE = get_interface_mode()
 
-# Configuración de pines
+# Pin configuration
 PIN_CONFIG = {
     'RED': {'led': 2, 'button': 6},
     'GREEN': {'led': 3, 'button': 7},
@@ -31,18 +31,18 @@ PIN_CONFIG = {
     'BUZZER': 15
 }
 
-# Configuración del juego
+# Game configuration
 COLORS = ['RED', 'GREEN', 'BLUE', 'YELLOW']
-DEBOUNCE_TIME = 0.2  # segundos
-SEQUENCE_DELAY = 0.5  # segundos
-POWER_SAVE_TIMEOUT = 60  # segundos sin interacción
+DEBOUNCE_TIME = 0.2  # seconds
+SEQUENCE_DELAY = 0.5  # seconds
+POWER_SAVE_TIMEOUT = 60  # seconds without interaction
 
-# Configuración de sonidos
+# Sound configuration
 SOUND_FREQUENCIES = {
-    'RED': 262,     # Do
-    'GREEN': 294,   # Re
-    'BLUE': 330,    # Mi
-    'YELLOW': 349,  # Fa
+    'RED': 262,     # C4
+    'GREEN': 294,   # D4
+    'BLUE': 330,    # E4
+    'YELLOW': 349,  # F4
     'SUCCESS': [262, 294, 330, 349],
     'FAIL': [349, 330, 294, 262],
     'RESET': [262, 262, 262]
