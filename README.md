@@ -101,6 +101,8 @@ For quick reference, here's a simplified diagram showing our pin assignments:
 
 ![PRT1050 Button and LED Kit Connections](PRT1050-connections.jpg)
 
+![MK0077 Active Buzzer Module Connections](MK0077-connections.jpg)
+
 ### Component Connections
 
 #### LED Circuits
