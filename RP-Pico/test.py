@@ -143,8 +143,8 @@ def test_interactive_single(led_manager, button_manager, buzzer_manager):
         print("Test by pressing the button several times.")
         print("The LED should light up and the buzzer should sound.")
         
-        # Give time to test (20 seconds)
-        timeout = 200  # 20 seconds (200 * 0.1)
+        # Give time to test (10 seconds)
+        timeout = 100  # 10 seconds (100 * 0.1)
         last_state = 1
         count = 0
         
