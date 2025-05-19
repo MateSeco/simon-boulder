@@ -9,18 +9,18 @@ class LEDManager:
         self._log_available_leds()
 
     def _log_available_leds(self):
-        print("LEDs disponibles:", list(self.leds.keys()))
+        print("Available LEDs:", list(self.leds.keys()))
 
     def setup_leds(self):
         try:
             for color, config in PIN_CONFIG.items():
-                # Verificar si config es un diccionario y tiene una entrada para 'led'
+                # Check if config is a dictionary and has a 'led' entry
                 if isinstance(config, dict) and 'led' in config:
                     try:
                         self.leds[color] = Pin(config['led'], Pin.OUT)
-                        print(f"LED {color} configurado en pin {config['led']}")
+                        print(f"{color} LED configured on pin {config['led']}")
                     except Exception as e:
-                        print(f"No se pudo configurar LED {color}: {e}")
+                        print(f"Could not configure {color} LED: {e}")
         except Exception as e:
             raise LEDError(f"Error setting up LEDs: {str(e)}")
 
@@ -29,18 +29,18 @@ class LEDManager:
             if color in self.leds:
                 self.leds[color].value(1)
             else:
-                print(f"Simulando LED {color} encendido (no conectado)")
+                print(f"Simulating {color} LED ON (not connected)")
         except Exception as e:
-            print(f"Error al encender LED {color}: {e}")
+            print(f"Error turning on {color} LED: {e}")
 
     def turn_off(self, color):
         try:
             if color in self.leds:
                 self.leds[color].value(0)
             else:
-                print(f"Simulando LED {color} apagado (no conectado)")
+                print(f"Simulating {color} LED OFF (not connected)")
         except Exception as e:
-            print(f"Error al apagar LED {color}: {e}")
+            print(f"Error turning off {color} LED: {e}")
 
     def cleanup(self):
         for led in self.leds.values():
