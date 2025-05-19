@@ -97,6 +97,10 @@ For quick reference, here's a simplified diagram showing our pin assignments:
 
 > **Note**: The SVG image above shows the complete pinout of the Raspberry Pi Pico. Our project uses specific pins highlighted in the ASCII diagram below it. Use both references when making your connections.
 
+### Visual Connection Guide
+
+![PRT1050 Button and LED Kit Connections](PRT1050-connections.jpg)
+
 ### Component Connections
 
 #### LED Circuits
