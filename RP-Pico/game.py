@@ -7,9 +7,7 @@ else:
     from random import randint
 
 from time import sleep
-from tones import play_color, play_success, play_fail, play_intro
-
-colors = ['RED', 'GREEN', 'BLUE', 'YELLOW']
+from config import COLORS as colors
 
 class Game:
     def __init__(self, interface):
@@ -32,16 +30,16 @@ class Game:
         self.simon.clear()
         self.guess.clear()
         try:
-            play_intro()
+            self.interface.show_intro()
         except Exception as e:
             print(f"Error playing intro melody: {e}")
+        sleep(1.0)
 
     def enter_color(self):
         try:
             color = self.interface.read_input()
             if color == 'RESET':
                 return None
-            play_color(color)
             self.guess.append(color)
             return color
         except Exception as e:
@@ -59,18 +57,13 @@ class Game:
             if not self.simon[i] == self.guess[i]:
                 print("YOU LOSE")
                 try:
-                    play_fail()
+                    self.interface.show_failure()
                 except Exception as e:
                     print(f"Error playing fail melody: {e}")
                 sleep(1)
                 return False
             
             print('SOUND: ', self.guess[i])
-            try:
-                play_color(self.guess[i])
-            except Exception as e:
-                print(f"Error playing sound: {e}")
-            sleep(0.5)
             i += 1
         
         if not self.running:
@@ -78,7 +71,7 @@ class Game:
             
         print("SUCCESS!")
         try:
-            play_success()
+            self.interface.show_success()
         except Exception as e:
             print(f"Error playing success melody: {e}")
         sleep(1)
@@ -89,16 +82,11 @@ class Game:
         for color in self.simon:
             if not self.running:
                 return
-            print(f'Showing: {color}')
-            # Try to play the sound
-            try:
-                play_color(color)
-            except Exception as e:
-                print(f"Error playing sound: {e}")
             
             # Try to show the LED
+            print(f'Showing: {color}')
             try:
-                self.interface.display_sequence(color)
+                self.interface.show_color(color)
             except Exception as e:
                 print(f"Error displaying LED: {e}")
             

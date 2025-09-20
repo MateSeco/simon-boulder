@@ -1,7 +1,7 @@
 from hardware.buttons import ButtonManager
 from hardware.leds import LEDManager
 from config import COLORS, PIN_CONFIG
-from tones import play_color, play_success, play_fail, cleanup
+from tones import play_color, play_success, play_fail, play_intro, cleanup
 import time
 
 class HardwareError(Exception):
@@ -14,6 +14,7 @@ class HardwareInterface:
         self.current_color = None
         self.last_button_time = 0
         self.reset_pressed = False
+        self.led_turn_off_time = {}  # Track when to turn off LEDs
         self.hardware_status = {
             'leds': {},
             'buttons': {},
@@ -37,13 +38,10 @@ class HardwareInterface:
     
     def _verify_components(self):
         """Verify component status and update hardware_status"""
-        # Check LEDs
+        # Check LEDs (without turning them on)
         for color in COLORS:
             try:
                 if color in self.leds.leds:
-                    self.leds.turn_on(color)
-                    time.sleep(0.1)
-                    self.leds.turn_off(color)
                     self.hardware_status['leds'][color] = True
                 else:
                     self.hardware_status['leds'][color] = False
@@ -88,15 +86,12 @@ class HardwareInterface:
         self._verify_components()
     
     def _handle_button(self, color):
-        current_time = time.ticks_ms()
-        if time.ticks_diff(current_time, self.last_button_time) > 200:  # 200ms debounce
-            if color == 'RESET':
-                self.reset_pressed = True
-                print("RESET pressed!")
-                cleanup()  # Clean up buzzer when reset is pressed
-            else:
-                self.current_color = color
-            self.last_button_time = current_time
+        if color == 'RESET':
+            self.reset_pressed = True
+            print("RESET pressed!")
+            cleanup()  # Clean up buzzer when reset is pressed
+        else:
+            self.current_color = color
             print(f"Button pressed: {color}")
     
     def read_input(self, timeout=30.0):
@@ -124,6 +119,11 @@ class HardwareInterface:
             
             if self.current_color:
                 result = self.current_color
+                # Provide immediate feedback (LED + sound)
+                self.show_color(result)
+                # Schedule LED to turn off after 200ms
+                if self.hardware_status['leds'].get(result, False):
+                    self.led_turn_off_time[result] = time.ticks_ms() + 200
                 self.current_color = None
                 return result
             
@@ -133,14 +133,17 @@ class HardwareInterface:
                 print("Game will restart...")
                 cleanup()  # Clean up buzzer on timeout
                 return 'RESET'  # Return RESET instead of None to restart the game
-                
-            # Periodically check hardware status
-            if time.ticks_diff(current_time, start_time) % 5000 == 0:  # Every 5 seconds
-                self._verify_components()
+            
+            # Check if any LEDs need to be turned off
+            for color, turn_off_time in list(self.led_turn_off_time.items()):
+                if time.ticks_diff(current_time, turn_off_time) >= 0:
+                    if self.hardware_status['leds'].get(color, False):
+                        self.leds.turn_off(color)
+                    del self.led_turn_off_time[color]
                 
             time.sleep(0.1)
 
-    def display_sequence(self, color):
+    def show_color(self, color):
         print(f"DEBUG: Showing color {color}")
         try:
             # Check if LED is available
@@ -153,13 +156,21 @@ class HardwareInterface:
                 
             time.sleep(0.5)  # Keep LED on
         except Exception as e:
-            print(f"Error displaying sequence: {e}")
-            raise HardwareError(f"Hardware error displaying {color}")
+            print(f"Error showing color: {e}")
+            raise HardwareError(f"Hardware error showing {color}")
         finally:
             if self.hardware_status['leds'].get(color, False):
                 self.leds.turn_off(color)
             cleanup()  # Ensure buzzer is cleaned up
         time.sleep(0.2)  # Pause between colors
+
+    def show_intro(self):
+        print("Game starting...")
+        try:
+            if self.hardware_status['buzzer']:
+                play_intro()
+        finally:
+            cleanup()
 
     def show_success(self):
         print("Success!")
@@ -184,21 +195,6 @@ class HardwareInterface:
             cleanup()  # Clean up buzzer
         except Exception as e:
             print(f"Error during cleanup: {e}")
-
-    def show_color(self, color):
-        print(f"DEBUG: Showing color {color}")
-        try:
-            if self.hardware_status['leds'].get(color, False):
-                self.leds.turn_on(color)
-            if self.hardware_status['buzzer']:
-                play_color(color)
-            time.sleep(0.5)
-        except Exception as e:
-            print(f"Error showing color {color}: {e}")
-        finally:
-            if self.hardware_status['leds'].get(color, False):
-                self.leds.turn_off(color)
-            cleanup()  # Ensure buzzer is cleaned up
 
 def play_tone(self, frequency):
     print(f"DEBUG: Playing tone {frequency}Hz")

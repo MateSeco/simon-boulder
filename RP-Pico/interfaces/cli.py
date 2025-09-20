@@ -21,8 +21,11 @@ class CLIInterface:
             except Exception:
                 print("Invalid input. Try again.")
 
-    def display_sequence(self, color):
+    def show_color(self, color):
         print(f"Simon says: {color}")
+
+    def show_intro(self):
+        print("Game starting...")
 
     def show_success(self):
         print("Success!")
