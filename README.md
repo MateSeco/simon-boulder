@@ -393,9 +393,13 @@ The game is designed to run on the Pico with physical components connected:
 1. Ensure all hardware is connected according to the pinout diagram
 2. Connect the Pico to your computer via USB
 3. Upload all files using the commands in the Software Installation section
-4. Once uploaded, you have two options to run the game:
-   - Disconnect from computer and power the Pico via a USB power supply - the game will start automatically
-   - Keep connected to computer and use screen to see debug messages:
+4. Once uploaded, you have three options to run the game:
+   - **Run directly with ampy** (recommended for development):
+     ```bash
+     ampy --port /dev/ttyACM0 run main.py
+     ```
+   - **Disconnect from computer** and power the Pico via a USB power supply - the game will start automatically
+   - **Keep connected to computer** and use screen to see debug messages:
      ```bash
      screen /dev/ttyACM0 115200
      ```
@@ -455,3 +459,16 @@ If ampy doesn't respond or times out:
 1. Disconnect and reconnect the Pico
 2. If it persists, reload MicroPython
 3. Verify there are no other active serial connections
+
+**Running the game with ampy:**
+
+```bash
+# Run the game
+ampy --port /dev/ttyACM0 run main.py
+
+# Run tests
+ampy --port /dev/ttyACM0 run test.py
+
+# Execute a simple command to test connection
+ampy --port /dev/ttyACM0 exec "print('Hello from Pico')"
+```
