@@ -1,8 +1,8 @@
-# boot.py - Inicia Simon Says automáticamente
+# boot.py - Starts Simon Says automatically
 import time
 
-print("Simon Says - Iniciando en 2 segundos...")
-print("(Presiona BOOTSEL + desconecta para cancelar)")
+print("Simon Says - Starting in 2 seconds...")
+print("(Press BOOTSEL + disconnect to cancel)")
 time.sleep(2)
 
 try:
@@ -10,7 +10,7 @@ try:
     main.main()
 except Exception as e:
     print(f"Error: {e}")
-    # Mantener LEDs apagados en caso de error
+    # Keep LEDs off in case of error
     from machine import Pin
     for p in [2, 3, 4, 5]:
         Pin(p, Pin.OUT).value(0)

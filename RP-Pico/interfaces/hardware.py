@@ -56,11 +56,11 @@ class HardwareInterface:
             print("\nGame ready with available hardware.")
 
     def read_input(self, timeout=30.0):
-        """Lee input usando polling (sin interrupts)"""
+        """Read input using polling (no interrupts)"""
         start_time = time.ticks_ms()
         
         while True:
-            # Revisar botones con polling
+            # Check buttons with polling
             pressed = self.buttons.check_buttons()
             
             if pressed == 'RESET':
@@ -68,21 +68,21 @@ class HardwareInterface:
                 return 'RESET'
             
             if pressed in COLORS:
-                # Feedback inmediato
+                # Immediate feedback
                 self.show_color(pressed)
                 return pressed
             
-            # Verificar timeout
+            # Check timeout
             current_time = time.ticks_ms()
             if time.ticks_diff(current_time, start_time) > (timeout * 1000):
                 print("\nTimeout: No input received")
                 cleanup()
                 return 'RESET'
             
-            time.sleep(0.02)  # Pequeña pausa para no saturar CPU
+            time.sleep(0.02)  # Small pause to not saturate CPU
 
     def show_color(self, color):
-        """Muestra un color (LED + sonido)"""
+        """Shows a color (LED + sound)"""
         try:
             if self.hardware_status['leds'].get(color, False):
                 self.leds.turn_on(color)
@@ -100,7 +100,7 @@ class HardwareInterface:
         time.sleep(0.1)
 
     def show_sequence(self, sequence):
-        """Muestra una secuencia de colores"""
+        """Shows a sequence of colors"""
         for color in sequence:
             self.show_color(color)
 
@@ -114,7 +114,7 @@ class HardwareInterface:
 
     def show_success(self):
         print("Success!")
-        # Parpadear todos los LEDs
+        # Flash all LEDs
         for _ in range(2):
             for color in COLORS:
                 if self.hardware_status['leds'].get(color, False):
