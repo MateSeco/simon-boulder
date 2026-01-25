@@ -1,61 +1,71 @@
-from time import sleep
-from config import PIN_CONFIG
-
-# Detect if we're running on MicroPython or standard Python
-try:
-    from machine import Pin, PWM
-    HARDWARE_MODE = True
-except ImportError:
-    HARDWARE_MODE = False
-    print("Running in simulation mode (no hardware)")
+from machine import Pin, PWM
+from config import PIN_CONFIG, SOUND_FREQUENCIES
+import time
 
 class BuzzerManager:
     def __init__(self):
         """Initialize the buzzer"""
         self.buzzer = None
-        if HARDWARE_MODE:
-            try:
-                buzzer_pin = PIN_CONFIG['BUZZER']
-                self.buzzer_pin = Pin(buzzer_pin)
-                self.buzzer = PWM(self.buzzer_pin)
-                print(f"Buzzer configured on pin {buzzer_pin}")
-            except Exception as e:
-                print(f"Error configuring buzzer: {e}")
-                self.buzzer = None
-        else:
-            print("Buzzer in simulation mode")
+        try:
+            buzzer_pin = PIN_CONFIG['BUZZER']
+            self.buzzer = PWM(Pin(buzzer_pin))
+            self.buzzer.duty_u16(0)
+        except Exception as e:
+            print(f"Error configuring buzzer: {e}")
 
-    def play_tone(self, freq, duration_ms):
-        """Play a tone with specified frequency and duration
-        
-        Args:
-            freq (int): Frequency in Hz
-            duration_ms (int): Duration in milliseconds
-        """
-        if HARDWARE_MODE and self.buzzer:
+    def play_tone(self, freq, duration_ms=300):
+        """Play a tone with specified frequency and duration"""
+        if self.buzzer:
             try:
                 self.buzzer.freq(freq)
-                self.buzzer.duty_u16(32768)  # 50% duty cycle
-                sleep(duration_ms / 1000.0)
+                self.buzzer.duty_u16(32768)
+                time.sleep_ms(duration_ms)
                 self.buzzer.duty_u16(0)
             except Exception as e:
                 print(f"Error playing tone: {e}")
-                self.cleanup()
-        else:
-            print(f"[SIMULATION] Playing tone at {freq}Hz for {duration_ms}ms")
-            sleep(duration_ms / 1000.0)
 
-    def play_sequence(self, sequence):
-        """Play a sequence of tones [(frequency, duration_ms),...]"""
-        for freq, duration_ms in sequence:
+    def play_color(self, color, duration_ms=300):
+        """Play the tone for a specific color"""
+        if color in SOUND_FREQUENCIES:
+            freq = SOUND_FREQUENCIES[color]
+            if isinstance(freq, int):
+                self.play_tone(freq, duration_ms)
+
+    def play_melody(self, frequencies, duration_ms=150):
+        """Play a sequence of frequencies"""
+        for freq in frequencies:
             self.play_tone(freq, duration_ms)
-            sleep(0.05)  # Small pause between notes
+            time.sleep_ms(50)
+
+    def play_success(self):
+        """Play success melody"""
+        if 'SUCCESS' in SOUND_FREQUENCIES:
+            self.play_melody(SOUND_FREQUENCIES['SUCCESS'], 100)
+
+    def play_fail(self):
+        """Play fail melody"""
+        if 'FAIL' in SOUND_FREQUENCIES:
+            self.play_melody(SOUND_FREQUENCIES['FAIL'], 200)
+
+    def play_reset(self):
+        """Play reset sound"""
+        if 'RESET' in SOUND_FREQUENCIES:
+            self.play_melody(SOUND_FREQUENCIES['RESET'], 100)
+
+    def beep(self, freq=440, duration_ms=100):
+        """Generic beep"""
+        self.play_tone(freq, duration_ms)
+
+    def off(self):
+        """Turn off buzzer"""
+        if self.buzzer:
+            self.buzzer.duty_u16(0)
 
     def cleanup(self):
         """Clean up buzzer resources"""
-        if HARDWARE_MODE and self.buzzer:
+        if self.buzzer:
             try:
                 self.buzzer.duty_u16(0)
                 self.buzzer.deinit()
-            except Exception as e:
-                print(f"Error during buzzer cleanup: {e}") 
+            except:
+                pass

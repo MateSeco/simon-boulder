@@ -1,36 +1,34 @@
 """
 Simon Says - With interrupts and robust event handling
-Uses configuration from config.py
+Uses hardware modules for LED and buzzer control
 """
-from machine import Pin, PWM
+from machine import Pin
 from urandom import getrandbits
 import time
 
-# Import configuration
 from config import (
     PIN_CONFIG,
     COLORS,
     DEBOUNCE_TIME,
     SEQUENCE_DELAY,
     SOUND_FREQUENCIES,
-    POWER_SAVE_TIMEOUT
+    POWER_SAVE_TIMEOUT,
+    SHOW_COLOR_MS,
+    PAUSE_BETWEEN_MS,
+    FEEDBACK_MS
 )
+from hardware.leds import LEDManager
+from hardware.buzzer import BuzzerManager
 
 # =============================================================================
 # DERIVED CONFIGURATION
 # =============================================================================
-# Extract pins from PIN_CONFIG
-LED_PINS = {color: PIN_CONFIG[color]['led'] for color in COLORS}
 BUTTON_PINS = {color: PIN_CONFIG[color]['button'] for color in COLORS}
 BUTTON_PINS['RESET'] = PIN_CONFIG['RESET']['button']
-BUZZER_PIN = PIN_CONFIG['BUZZER']
 
-# Timing (convert to milliseconds where needed)
 DEBOUNCE_MS = int(DEBOUNCE_TIME * 1000)
 SEQUENCE_DELAY_MS = int(SEQUENCE_DELAY * 1000)
 INPUT_TIMEOUT_MS = int(POWER_SAVE_TIMEOUT * 1000)
-SHOW_COLOR_MS = 400
-PAUSE_BETWEEN_MS = 100
 
 # =============================================================================
 # GAME STATES
@@ -51,26 +49,19 @@ class SimonGame:
         self.current_index = 0
         self.running = False
         
-        # Event queue (pending button presses)
+        # Event queue
         self.event_queue = []
         self.last_press_time = {}
         
-        # Setup LEDs
-        self.leds = {}
-        for color, pin in LED_PINS.items():
-            self.leds[color] = Pin(pin, Pin.OUT)
-            self.leds[color].value(0)
-        
-        # Setup buzzer
-        self.buzzer = PWM(Pin(BUZZER_PIN))
-        self.buzzer.duty_u16(0)
+        # Hardware managers
+        self.leds = LEDManager()
+        self.buzzer = BuzzerManager()
         
         # Setup buttons with interrupts
         self.buttons = {}
         for color, pin in BUTTON_PINS.items():
             self.buttons[color] = Pin(pin, Pin.IN, Pin.PULL_UP)
             self.last_press_time[color] = 0
-            # Setup interrupt on falling edge
             self.buttons[color].irq(
                 trigger=Pin.IRQ_FALLING,
                 handler=self._make_handler(color)
@@ -89,18 +80,15 @@ class SimonGame:
         current_time = time.ticks_ms()
         last_time = self.last_press_time.get(color, 0)
         
-        # Debounce: ignore if too soon since last press
         if time.ticks_diff(current_time, last_time) < DEBOUNCE_MS:
             return
         
         self.last_press_time[color] = current_time
         
-        # Only register events if waiting for input
         if self.state == STATE_WAITING:
             self.event_queue.append(color)
             print(f"[IRQ] {color} pressed")
         elif color == 'RESET':
-            # RESET is always processed
             self.event_queue.append('RESET')
             print("[IRQ] RESET pressed")
     
@@ -109,108 +97,26 @@ class SimonGame:
         self.event_queue = []
     
     def get_event(self):
-        """Gets the next event from the queue (or None if empty)"""
+        """Gets the next event from the queue"""
         if self.event_queue:
             return self.event_queue.pop(0)
         return None
     
     # =========================================================================
-    # AUDIO/VIDEO FUNCTIONS
+    # DISPLAY FUNCTIONS
     # =========================================================================
-    def play_tone(self, color, duration_ms=300):
-        """Plays the tone for a color using SOUND_FREQUENCIES"""
-        if color in SOUND_FREQUENCIES:
-            freq = SOUND_FREQUENCIES[color]
-            if isinstance(freq, int):
-                self.buzzer.freq(freq)
-                self.buzzer.duty_u16(32768)
-                time.sleep_ms(duration_ms)
-                self.buzzer.duty_u16(0)
-    
-    def beep(self, freq=440, duration_ms=100):
-        """Generic beep"""
-        self.buzzer.freq(freq)
-        self.buzzer.duty_u16(32768)
-        time.sleep_ms(duration_ms)
-        self.buzzer.duty_u16(0)
-    
-    def play_melody(self, frequencies, duration_ms=150):
-        """Plays a sequence of frequencies"""
-        for freq in frequencies:
-            self.beep(freq, duration_ms)
-            time.sleep_ms(50)
-    
-    def led_on(self, color):
-        if color in self.leds:
-            self.leds[color].value(1)
-    
-    def led_off(self, color):
-        if color in self.leds:
-            self.leds[color].value(0)
-    
-    def all_leds_off(self):
-        for led in self.leds.values():
-            led.value(0)
-    
-    def buzzer_off(self):
-        self.buzzer.duty_u16(0)
-    
     def show_color(self, color):
         """Shows a color with sound (for the sequence)"""
-        self.led_on(color)
-        self.play_tone(color, SHOW_COLOR_MS)
-        self.led_off(color)
+        self.leds.turn_on(color)
+        self.buzzer.play_color(color, SHOW_COLOR_MS)
+        self.leds.turn_off(color)
         time.sleep_ms(PAUSE_BETWEEN_MS)
     
     def feedback_color(self, color):
-        """Feedback when pressing a button (shorter)"""
-        self.led_on(color)
-        self.play_tone(color, 150)
-        self.led_off(color)
-    
-    def flash_all(self, times=3, speed_ms=100):
-        """Flashes all LEDs"""
-        for _ in range(times):
-            for led in self.leds.values():
-                led.value(1)
-            time.sleep_ms(speed_ms)
-            for led in self.leds.values():
-                led.value(0)
-            time.sleep_ms(speed_ms)
-    
-    # =========================================================================
-    # MELODIES (using SOUND_FREQUENCIES from config)
-    # =========================================================================
-    def play_success(self):
-        """Round completed melody"""
-        if 'SUCCESS' in SOUND_FREQUENCIES:
-            self.play_melody(SOUND_FREQUENCIES['SUCCESS'], 100)
-        else:
-            self.beep(523, 100)
-            self.beep(659, 100)
-            self.beep(784, 200)
-    
-    def play_gameover(self):
-        """Game over melody"""
-        if 'FAIL' in SOUND_FREQUENCIES:
-            self.play_melody(SOUND_FREQUENCIES['FAIL'], 200)
-        else:
-            self.beep(200, 300)
-            self.beep(150, 500)
-    
-    def play_reset_sound(self):
-        """Reset sound"""
-        if 'RESET' in SOUND_FREQUENCIES:
-            self.play_melody(SOUND_FREQUENCIES['RESET'], 100)
-        else:
-            self.beep(440, 100)
-    
-    def play_intro(self):
-        """Intro animation and sound"""
-        print("Starting Simon Says...")
-        for color in COLORS:
-            self.show_color(color)
-        time.sleep_ms(300)
+        """Feedback when pressing a button"""
+        self.leds.turn_on(color)
+        self.buzzer.play_color(color, FEEDBACK_MS)
+        self.leds.turn_off(color)
     
     # =========================================================================
     # GAME LOGIC
@@ -232,10 +138,7 @@ class SimonGame:
         time.sleep_ms(300)
     
     def wait_for_input(self):
-        """
-        Waits for player input for the entire sequence.
-        Returns: 'success', 'fail', 'timeout', or 'reset'
-        """
+        """Waits for player input for the entire sequence"""
         self.state = STATE_WAITING
         self.clear_events()
         self.current_index = 0
@@ -252,7 +155,7 @@ class SimonGame:
                 if event is not None:
                     if event == 'RESET':
                         print("Reset requested")
-                        self.play_reset_sound()
+                        self.buzzer.play_reset()
                         return 'reset'
                     
                     self.feedback_color(event)
@@ -271,7 +174,7 @@ class SimonGame:
                 
                 if 'RESET' in self.event_queue:
                     self.event_queue.remove('RESET')
-                    self.play_reset_sound()
+                    self.buzzer.play_reset()
                     return 'reset'
                 
                 time.sleep_ms(10)
@@ -284,12 +187,11 @@ class SimonGame:
         print(f"\n=== Round {len(self.sequence)} ===")
         
         self.show_sequence()
-        
         result = self.wait_for_input()
         
         if result == 'success':
             print("Round completed!")
-            self.play_success()
+            self.buzzer.play_success()
         
         return result
     
@@ -297,8 +199,15 @@ class SimonGame:
         """Handles game over"""
         self.state = STATE_GAMEOVER
         print(f"\nGAME OVER - You reached round {len(self.sequence)}")
-        self.play_gameover()
-        self.flash_all(times=5, speed_ms=100)
+        self.buzzer.play_fail()
+        self.leds.flash_all(times=5, delay_ms=100)
+    
+    def play_intro(self):
+        """Intro animation and sound"""
+        print("Starting Simon Says...")
+        for color in COLORS:
+            self.show_color(color)
+        time.sleep_ms(300)
     
     def start(self):
         """Main game loop"""
@@ -324,13 +233,13 @@ class SimonGame:
                 
                 if result == 'timeout':
                     print("Time's up!")
-                    self.flash_all(times=2, speed_ms=150)
+                    self.leds.flash_all(times=2, delay_ms=150)
                     time.sleep_ms(500)
                     break
                 
                 if result == 'reset':
                     print("Restarting...")
-                    self.flash_all(times=2, speed_ms=100)
+                    self.leds.flash_all(times=2, delay_ms=100)
                     time.sleep_ms(500)
                     break
                 
@@ -340,8 +249,8 @@ class SimonGame:
         """Cleanup on exit"""
         for btn in self.buttons.values():
             btn.irq(handler=None)
-        self.all_leds_off()
-        self.buzzer_off()
+        self.leds.turn_all_off()
+        self.buzzer.cleanup()
         print("Cleanup completed")
 
 # =============================================================================

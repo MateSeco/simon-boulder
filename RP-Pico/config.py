@@ -1,5 +1,3 @@
-import os
-
 # Detect if we're running on MicroPython or standard Python
 try:
     import sys
@@ -8,7 +6,6 @@ except:
     is_micropython = False
 
 def get_interface_mode():
-    # Simple platform check - CLI on computer, hardware on Pico
     return 'hardware' if is_micropython else 'cli'
 
 INTERFACE_MODE = get_interface_mode()
@@ -28,6 +25,11 @@ COLORS = ['RED', 'GREEN', 'BLUE', 'YELLOW']
 DEBOUNCE_TIME = 0.2  # seconds
 SEQUENCE_DELAY = 0.5  # seconds
 POWER_SAVE_TIMEOUT = 60  # seconds without interaction
+
+# Display timing
+SHOW_COLOR_MS = 400  # Duration to show each color in sequence
+PAUSE_BETWEEN_MS = 100  # Pause between colors
+FEEDBACK_MS = 150  # Duration of button press feedback
 
 # Sound configuration
 SOUND_FREQUENCIES = {

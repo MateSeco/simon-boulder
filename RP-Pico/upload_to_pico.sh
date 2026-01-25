@@ -1,6 +1,5 @@
 #!/bin/bash
-# Script to upload all files to Raspberry Pi Pico
-# Without automatic boot.py to avoid lockups
+# Script to upload Simon Says to Raspberry Pi Pico
 
 PORT="/dev/ttyACM0"
 
@@ -21,18 +20,30 @@ if [ ! -e "$PORT" ]; then
     exit 1
 fi
 
-echo "Uploading main files..."
-ampy --port $PORT put main.py
+echo "Uploading files..."
+
+# Main files
+echo "  -> config.py"
 ampy --port $PORT put config.py
 
+echo "  -> main.py"
+ampy --port $PORT put main.py
+
+# Hardware directory
+echo "  -> hardware/"
+ampy --port $PORT mkdir hardware 2>/dev/null || true
+ampy --port $PORT put hardware/__init__.py hardware/__init__.py
+ampy --port $PORT put hardware/leds.py hardware/leds.py
+ampy --port $PORT put hardware/buzzer.py hardware/buzzer.py
+
 echo ""
-echo "Main files uploaded!"
+echo "Files uploaded!"
 echo ""
 echo "Testing game (Ctrl+C to stop)..."
 echo ""
 ampy --port $PORT run main.py
 
-# If we get here without error, ask to upload boot.py
+# Ask to upload boot.py
 echo ""
 echo "=========================================="
 read -p "Did the game work? Upload boot.py for auto-start? (y/n): " response
