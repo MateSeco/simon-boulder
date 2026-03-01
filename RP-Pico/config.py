@@ -1,15 +1,3 @@
-# Detect if we're running on MicroPython or standard Python
-try:
-    import sys
-    is_micropython = sys.implementation.name == 'micropython'
-except:
-    is_micropython = False
-
-def get_interface_mode():
-    return 'hardware' if is_micropython else 'cli'
-
-INTERFACE_MODE = get_interface_mode()
-
 # Pin configuration
 PIN_CONFIG = {
     'RED': {'led': 2, 'button': 6},

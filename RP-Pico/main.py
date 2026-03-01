@@ -11,7 +11,6 @@ from config import (
     COLORS,
     DEBOUNCE_TIME,
     SEQUENCE_DELAY,
-    SOUND_FREQUENCIES,
     POWER_SAVE_TIMEOUT,
     SHOW_COLOR_MS,
     PAUSE_BETWEEN_MS,
@@ -36,7 +35,6 @@ INPUT_TIMEOUT_MS = int(POWER_SAVE_TIMEOUT * 1000)
 STATE_IDLE = 0
 STATE_SHOWING = 1
 STATE_WAITING = 2
-STATE_GAMEOVER = 3
 
 # =============================================================================
 # MAIN CLASS
@@ -197,7 +195,6 @@ class SimonGame:
     
     def game_over(self):
         """Handles game over"""
-        self.state = STATE_GAMEOVER
         print(f"\nGAME OVER - You reached round {len(self.sequence)}")
         self.buzzer.play_fail()
         self.leds.flash_all(times=5, delay_ms=100)

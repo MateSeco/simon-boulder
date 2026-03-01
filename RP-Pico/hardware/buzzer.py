@@ -52,15 +52,6 @@ class BuzzerManager:
         if 'RESET' in SOUND_FREQUENCIES:
             self.play_melody(SOUND_FREQUENCIES['RESET'], 100)
 
-    def beep(self, freq=440, duration_ms=100):
-        """Generic beep"""
-        self.play_tone(freq, duration_ms)
-
-    def off(self):
-        """Turn off buzzer"""
-        if self.buzzer:
-            self.buzzer.duty_u16(0)
-
     def cleanup(self):
         """Clean up buzzer resources"""
         if self.buzzer:
